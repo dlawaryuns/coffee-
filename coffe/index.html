@@ -1,0 +1,254 @@
+/*
+  CoffeeNowComponent.jsx
+  ----------------------
+  Single-file React component (default export) using Tailwind CSS classes.
+
+  How to use:
+  1. Add Tailwind CSS to your project (recommended: Create React App + Tailwind or Next.js with Tailwind).
+     - Next.js: follow Tailwind docs -> https://tailwindcss.com/docs/guides/nextjs
+  2. Drop this file into your components folder and import it on a page (e.g. pages/index.js or app/page.jsx).
+  3. Replace PRODUCT image URLs and AFFILIATE_LINK_* placeholders with real Amazon Associates links.
+  4. Optional: tune time window, messages, and analytics hooks.
+
+  Notes:
+  - This component is accessible and responsive.
+  - It includes a light/dark toggle that remembers preference in localStorage.
+  - Animations use Tailwind utility classes and a tiny inline style for steam animation.
+*/
+
+import React, { useEffect, useMemo, useState } from "react";
+
+export default function CoffeeNowComponent() {
+  // Dark mode state persisted in localStorage
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("cuptime:dark");
+      if (saved !== null) setDark(saved === "1");
+    } catch (e) {}
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("cuptime:dark", dark ? "1" : "0");
+    } catch (e) {}
+  }, [dark]);
+
+  // Time detection
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 90_000); // refresh every 90s
+    return () => clearInterval(t);
+  }, []);
+
+  const hour = now.getHours();
+  const COFFEE_START = 6;
+  const COFFEE_END = 14; // inclusive
+  const isCoffeeTime = hour >= COFFEE_START && hour <= COFFEE_END;
+
+  const yesMessages = useMemo(
+    () => [
+      "It's coffee o'clock — go for a cup!",
+      "Perfect time for a brewed boost.",
+      "Yes. Your future self will thank you.",
+      "Grab a mug and conquer the day."
+    ],
+    []
+  );
+
+  const noMessages = useMemo(
+    () => [
+      "Probably skip it — sleep wins tonight.",
+      "Try decaf or a short walk instead.",
+      "Hold up — maybe tea?",
+      "A warm drink that's caffeine-free might be nice."
+    ],
+    []
+  );
+
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    const choices = isCoffeeTime ? yesMessages : noMessages;
+    setMessage(choices[Math.floor(Math.random() * choices.length)]);
+  }, [isCoffeeTime, now.getTime(), yesMessages, noMessages]);
+
+  // product placeholders (replace images and links)
+  const products = [
+    {
+      id: 1,
+      name: "Best Coffee Beans",
+      image:
+        "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=60&auto=format&fit=crop&crop=entropy",
+      link: "AFFILIATE_LINK_BEANS"
+    },
+    {
+      id: 2,
+      name: "Cool Ceramic Mug",
+      image:
+        "https://images.unsplash.com/photo-1519643381401-22c77e60520e?w=800&q=60&auto=format&fit=crop&crop=entropy",
+      link: "AFFILIATE_LINK_MUG"
+    },
+    {
+      id: 3,
+      name: "Compact Espresso Machine",
+      image:
+        "https://images.unsplash.com/photo-1542444459-db5b9f1f1c6f?w=800&q=60&auto=format&fit=crop&crop=entropy",
+      link: "AFFILIATE_LINK_MACHINE"
+    }
+  ];
+
+  function refreshMessage() {
+    const choices = isCoffeeTime ? yesMessages : noMessages;
+    setMessage(choices[Math.floor(Math.random() * choices.length)]);
+    // small vibration if supported
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+
+  function surprise() {
+    const fun = [
+      "Pro tip: add cinnamon to your grounds for a cozy kick.",
+      "Fun fact: coffee was originally chewed, not brewed.",
+      "If you brew it, take a picture — socials love it!",
+      "Try swapping half your beans for a chocolatey roast."
+    ];
+    setMessage(fun[Math.floor(Math.random() * fun.length)]);
+  }
+
+  return (
+    <div className={dark ? "dark" : ""}>
+      <div className="min-h-screen bg-amber-50 dark:bg-[#0b0b0b] flex items-center justify-center py-12 px-4">
+        <div className="w-full max-w-4xl">
+          <div
+            className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 md:p-8 shadow-2xl border border-white/30 dark:border-white/6 flex flex-col md:flex-row gap-6"
+            role="region"
+            aria-label="Should I drink coffee now widget"
+          >
+            {/* left */}
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-amber-700 to-amber-500 text-white shadow">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M3 7h14v6a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M18 10h1a3 3 0 1 0 0-6h-1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+
+                <div>
+                  <div className="font-serif text-lg text-amber-800 dark:text-amber-300">CupTime</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">your tiny coffee adviser</div>
+                </div>
+
+                <div className="ml-auto flex items-center gap-2">
+                  <button
+                    onClick={() => setDark(!dark)}
+                    aria-pressed={dark}
+                    className="p-2 rounded-md border border-white/30 dark:border-white/6 bg-white/60 dark:bg-white/3 hover:scale-105 transition-transform"
+                    title="Toggle light/dark"
+                  >
+                    {dark ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#ffd" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" stroke="#caa" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <h1 className={`text-6xl md:text-7xl font-extrabold leading-none ${isCoffeeTime ? "text-amber-700" : "text-gray-600 dark:text-gray-200"}`}> 
+                <span className="inline-block px-6 py-3 rounded-full shadow-lg" style={{ background: isCoffeeTime ? "linear-gradient(180deg,#6f3f2a,#a4633b)" : "linear-gradient(180deg,#94a3b8,#c7d2da)" , color: 'white'}} aria-live="polite" id="cup-answer">
+                  {isCoffeeTime ? "YES ☕" : "NO ❌"}
+                </span>
+              </h1>
+
+              <p className="mt-4 text-lg text-gray-700 dark:text-gray-300" id="cup-message">
+                {message}
+              </p>
+
+              <div className="mt-6 flex items-center gap-3">
+                <button
+                  onClick={refreshMessage}
+                  className="px-4 py-2 rounded-lg border border-amber-700 text-amber-700 hover:bg-amber-50 dark:hover:bg-white/3 transition"
+                >
+                  Check Again
+                </button>
+
+                <button
+                  onClick={surprise}
+                  className="px-4 py-2 rounded-lg bg-amber-700 text-white shadow hover:brightness-95 transition"
+                >
+                  Surprise Me
+                </button>
+
+                <a
+                  href="#buyme"
+                  onClick={(e) => e.preventDefault()}
+                  className="ml-auto text-sm text-gray-500 dark:text-gray-400 underline"
+                >
+                  Buy me a coffee
+                </a>
+              </div>
+
+              {/* product cards */}
+              <div className="mt-8">
+                <div className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-3">Our coffee picks</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {products.map((p) => (
+                    <article key={p.id} className="bg-white/90 dark:bg-white/3 rounded-xl p-3 shadow-md border border-white/30 dark:border-white/6">
+                      <img src={p.image} alt={p.name} className="w-full h-36 object-cover rounded-md" />
+                      <h3 className="mt-3 font-medium text-gray-800 dark:text-gray-100">{p.name}</h3>
+                      <div className="mt-2 flex items-center gap-2">
+                        <a
+                          href={p.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block mt-2 px-3 py-2 rounded-md bg-amber-600 text-white text-sm hover:bg-amber-700 transition"
+                        >
+                          Shop Now
+                        </a>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">• Ships worldwide</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* right */}
+            <div className="w-full md:w-80 flex-shrink-0 flex items-center justify-center relative">
+              <div className="w-56 h-56 flex items-center justify-center relative">
+                <div className="relative z-10">
+                  <div className="w-44 h-32 rounded-2xl bg-gradient-to-b from-white to-amber-50 border-4" style={{ borderColor: 'rgba(111,63,42,0.12)' }}>
+                    <div className="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-36 h-12 rounded-full" style={{ background: isCoffeeTime ? 'linear-gradient(90deg,#6f3f2a,#a4633b)' : 'linear-gradient(90deg,#94a3b8,#c7d2da)' }}></div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full border-8 border-white/20 absolute right-0 top-12" style={{ transform: 'translate(28px,-8px)', borderColor: 'rgba(111,63,42,0.12)' }}></div>
+                </div>
+
+                {/* animated steam (css keyframes from Tailwind not necessary, use inline style) */}
+                <svg className="absolute -top-10 left-1/2 -translate-x-1/2 w-40 h-52 pointer-events-none" viewBox="0 0 80 140" fill="none" aria-hidden>
+                  <path d="M10 110 C20 80 20 40 40 20" stroke="white" strokeOpacity="0.9" strokeWidth="3" strokeLinecap="round" style={{ transformOrigin: 'center', animation: 'steam1 3s ease-in-out infinite' }}></path>
+                  <path d="M30 120 C40 90 40 50 60 30" stroke="white" strokeOpacity="0.75" strokeWidth="3" strokeLinecap="round" style={{ transformOrigin: 'center', animation: 'steam2 3.6s ease-in-out infinite' }}></path>
+                  <path d="M50 115 C60 85 60 45 70 25" stroke="white" strokeOpacity="0.6" strokeWidth="3" strokeLinecap="round" style={{ transformOrigin: 'center', animation: 'steam3 4.2s ease-in-out infinite' }}></path>
+                </svg>
+
+                <style>{`
+                  @keyframes steam1{0%{transform:translateY(20px) scale(.95);opacity:0}20%{opacity:.7}60%{transform:translateY(-50px) scale(1.05);opacity:.9}100%{transform:translateY(-120px) scale(1.15);opacity:0}}
+                  @keyframes steam2{0%{transform:translateY(16px) scale(.95);opacity:0}20%{opacity:.6}60%{transform:translateY(-46px) scale(1.05);opacity:.85}100%{transform:translateY(-110px) scale(1.12);opacity:0}}
+                  @keyframes steam3{0%{transform:translateY(18px) scale(.95);opacity:0}20%{opacity:.5}60%{transform:translateY(-48px) scale(1.02);opacity:.75}100%{transform:translateY(-100px) scale(1.1);opacity:0}}
+                `}</style>
+
+              </div>
+            </div>
+
+          </div>
+
+          <div className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+            Built with ❤️ — replace affiliate placeholders with your Amazon Associates links before publishing.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
